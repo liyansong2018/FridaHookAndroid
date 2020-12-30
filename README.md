@@ -185,7 +185,7 @@ Java.perform(function (){
 
 查看反编译得到的 smali 源码，smali 文件会将每个类作为一个单独文件保存，如下图所示的 `$1` 就是匿名内部类。
 
-![innerclass](pictures\innerclass.png)
+![innerclass](pictures/innerclass.png)
 
 其余用法跟普通类是一样的。
 
@@ -224,8 +224,8 @@ Java.perform(function (){
 如果 app 没有调用 get 等函数，怎么直接获取类的私有属性呢？早期版本的 frida 支持使用 java 提供的反射，js 同样也提供了该功能。
 
 ```js
-		var objectionInstance = Animal.$new("test", 0);
-		var ob = Java.cast(objectionInstance.getClass(), clazz);
+	var objectionInstance = Animal.$new("test", 0);
+	var ob = Java.cast(objectionInstance.getClass(), clazz);
         var name = ob.getDeclaredField("name");     // 获得某个属性对象
         var value = ob.get(name);                   // 获得obj中对应的属性值
         send(value);
