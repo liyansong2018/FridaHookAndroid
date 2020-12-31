@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/toast_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/toast"/>
+    <Button
+        android:id="@+id/common_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/common_function" />
+    <Button
+        android:id="@+id/constructor_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/constructor" />
+    <Button
+        android:id="@+id/inner_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/inner_class" />
+    <Button
+        android:id="@+id/anonymous_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/anonymous_class" />
+    <Button
+        android:id="@+id/private_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/private_property" />
+
+</LinearLayout>

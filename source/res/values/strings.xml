@@ -1,9 +1,0 @@
-<resources>
-    <string name="app_name">TestFrida</string>
-    <string name="toast">Toast</string>
-    <string name="common_function">普通函数</string>
-    <string name="constructor">构造函数</string>
-    <string name="inner_class">内部类</string>
-    <string name="anonymous_class">匿名内部类</string>
-    <string name="private_property">私有属性</string>
-</resources>
