@@ -185,7 +185,7 @@ Java.perform(function (){
 
 查看反编译得到的 smali 源码，smali 文件会将每个类作为一个单独文件保存，如下图所示的 `$1` 就是匿名内部类。
 
-![innerclass](pictures/innerclass.png)
+![innerclass](./pictures/innerclass.png)
 
 其余用法跟普通类是一样的。
 
@@ -271,7 +271,7 @@ Java.perform(function (){
 
 ```js
 		// 修改私有属性
-        this.age.value = 999;
+        this.age.value = 9999;
 ```
 
 ## 进阶用法
@@ -488,7 +488,7 @@ function bytes2hex(array) {
 
 例如，一个名为“Device Information”的 Service，可能包含多个 Characteristics，比如 “Manufacture Name String”，每个名字在编程中，都有一个统一的表示方法，唯一识别，这就是 UUID。
 
-![BLE](pictures\BLE.png)
+![BLE](./pictures/BLE.png)
 
 在 Android SDK 中，低功耗蓝牙使用`BluetoothGattCallback` 提供的回调，调用 `onCharacteristicWrite` /Read 方法进行读写，具体用法可参见 https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback。
 
