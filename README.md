@@ -5,6 +5,8 @@ frida 版本：12.11.18
 
 系统：Ubuntu 20.04 LTS
 
+博客地址：[Frida Hook Android App 进阶用法之 Java 运行时](https://blog.csdn.net/song_lee/article/details/111999565)
+
 # 官方 API
 
 ## Java 运行时
