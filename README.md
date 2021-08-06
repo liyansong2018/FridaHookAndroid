@@ -7,9 +7,9 @@ frida 版本：12.11.18
 
 博客地址：[Frida Hook Android App 进阶用法之 Java 运行时](https://blog.csdn.net/song_lee/article/details/111999565)
 
-# 官方 API
+## 官方 API
 
-## Java 运行时
+### Java 运行时
 
 官方API地址： [https://www.frida.re/docs/javascript-api/#java](https://www.frida.re/docs/javascript-api/)  ，这里给出几个常用的 API
 
@@ -56,9 +56,9 @@ Java.perform(function(){
 
 枚举当前已加载的类。`callbacks` 参数是一个对象，需要提供两个回调函数—— `onMatch(className)` 和 `onComplete`。每次找到一个类就会调用一次 `onMatch`，全部找完之后，调用 `onComplete`。
 
-# hook 案例
+## hook 案例
 
-## 通用案例
+### 通用案例
 
 方法一：运行时 hook
 
@@ -105,7 +105,7 @@ frida -U -l test.js -f com.example.testfrida
 - 使用方法一，运行时 hook，需要在 app 刚启动时，就运行 python 程序；
 - 使用方法二，用 spawn 拉起 app
 
-### 普通方法
+#### 普通方法
 
 ```js
 Java.perform(function (){
@@ -127,7 +127,7 @@ Java.perform(function (){
 [+] hijack getAnimalInfo
 ```
 
-### 构造函数
+#### 构造函数
 
 形参类型通过 `overload` 传递
 
@@ -159,7 +159,7 @@ Java.perform(function (){
 [+] 参数2：2
 ```
 
-### 内部类
+#### 内部类
 
 内部类的一般写法是 Class$InnerClass，对于混淆的内部类，查看 smali 源码就能看出 $1、$2 这样的类就是内部类。
 
@@ -183,7 +183,7 @@ Java.perform(function (){
 [+] hijack inner Class
 ```
 
-### 匿名内部类
+#### 匿名内部类
 
 查看反编译得到的 smali 源码，smali 文件会将每个类作为一个单独文件保存，如下图所示的 `$1` 就是匿名内部类。
 
@@ -221,7 +221,7 @@ Java.perform(function (){
 
 
 
-### 私有属性
+#### 私有属性
 
 如果 app 没有调用 get 等函数，怎么直接获取类的私有属性呢？早期版本的 frida 支持使用 java 提供的反射，js 同样也提供了该功能。
 
@@ -276,9 +276,9 @@ Java.perform(function (){
         this.age.value = 9999;
 ```
 
-## 进阶用法
+### 进阶用法
 
-### 获取内存中加载的所有类
+#### 获取内存中加载的所有类
 
 ```js
 Java.perform(function(){
@@ -308,7 +308,7 @@ Java.perform(function(){
 ...
 ```
 
-### 获取类中的所有方法
+#### 获取类中的所有方法
 
 ```js
 Java.perform(function(){
@@ -339,7 +339,7 @@ public void com.example.testfrida.Animal.setAge(int)
 public void com.example.testfrida.Animal.setName(java.lang.String)
 ```
 
-### 打印调用栈
+#### 打印调用栈
 
 有两种方法可以跟踪函数的调用栈，推荐使用第一种。
 
@@ -413,9 +413,9 @@ lys@lys-VirtualBox:~$ adb logcat -s AndroidRuntime
 12-19 17:50:22.314 31328 31328 E AndroidRuntime:        ... 3 more
 ```
 
-## 助理函数
+### 助理函数
 
-### ArrayBuffer 转换
+#### ArrayBuffer 转换
 
 ```js
 function ab2Hex(buffer) {
@@ -428,7 +428,7 @@ function ab2Str(buffer) {
 }
 ```
 
-### 获取 JS 对象类型
+#### 获取 JS 对象类型
 
 ```js
 function getParamType(obj) {
@@ -461,7 +461,7 @@ Array
 class com.example.testfrida.Animal
 ```
 
-### 字节数组转十六进制
+#### 字节数组转十六进制
 
 ```js
 // thanks: https://awakened1712.github.io/hacking/hacking-frida/
@@ -473,11 +473,11 @@ function bytes2hex(array) {
 }
 ```
 
-# 典型案例
+## 典型案例
 
-## hook BLE
+### hook BLE
 
-### 分析
+#### 分析
 
 简要说明一下，在 BLE 协议栈中 ，有几个关键概念
 
@@ -505,7 +505,7 @@ private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback(){
 }
 ```
 
-### hook
+#### hook
 
 所以，想要 hook 住与设备传输的蓝牙数据，必然是拦截 `BluetoothGattCallback` 这个构造方法。
 
@@ -539,4 +539,116 @@ if (Java.available) {
 } 
 ```
 
+## Frida 数据类型
 
+Frida hook 某个方法时，如果该方法没有重载，则相当简单，我们不需要声明参数类型，直接使用 `类.方法名.implentation = function(arg1, arg2){}`
+
+如果该方法重载，则需要添加参数类型，写法如下 `类.方法名.overload(类型1， 类型2) = function(arg1, arg2){}`
+
+### 基本数据类型
+
+| Frida中的基本类型全名 | Frida中的基本类型缩写(定义数组时使用) |
+| --------------------- | ------------------------------------- |
+| boolean               | Z                                     |
+| byte                  | B                                     |
+| char                  | C                                     |
+| double                | D                                     |
+| float                 | F                                     |
+| int                   | I                                     |
+| long                  | J                                     |
+| short                 | S                                     |
+
+Frida 基本数据类型与 Java 保持一致。
+
+#### 定义一个整型变量
+
+```js
+// int jStringVar = 1;
+var jInt = Java.use("java.lang.Integer");
+var jStringVar = jStringClass.$new(1);
+```
+
+#### 定义一个字符串变量
+
+```js
+// String jStringVar = "我是字符串"
+var jString = Java.use("java.lang.String");
+var jStringVar = jStringClass.$new("我是字符串");
+```
+
+#### 打印变量值
+
+```js
+console.log(jStringVar.value)
+```
+
+### 数组
+
+数组类型其实与 Smali 语法或者说是 Java 字节码保持一致，例如 
+
+- int 类型的数组，写法为：`[I`
+- String 类型的数组，写法为：`[java.lang.String;`  注意结尾的分号
+
+#### 定义一个空数组
+
+Java/C 代码
+
+```c
+int a[];
+```
+
+Frida Js 代码
+
+```js
+var emptyArray = Java.array("Ljava.lang.Object;",[]);
+//---简写如下
+var emptyArray = [];
+```
+
+#### 定义一个数组并初始化
+
+Java/C 代码
+
+```c
+int a[] = {1, 2};
+```
+
+Frida Js 代码
+
+```js
+var intClass = Java.use("java.lang.Integer");
+var num1 = intClass.$new(1);
+var num2 = intClass.$new(2);
+var intArray = Java.array("Ljava.lang.Object;",[num1,num2]);
+//---简写如下
+var num1 = intClass.$new(1);
+var num2 = intClass.$new(2);
+var intArray = [num1,num2];
+```
+
+### 引用数据类型
+
+如果是 hook 某个**重载**函数，其中的参数为引用数据类型，那么直接写入全称即可。例如我们想 hook  这个函数
+
+```java
+// Anmial 类
+public void onTest(boolean z, Bundle bundle);
+```
+
+直接使用如下 js
+
+```js
+var Anmial = Java.use("xxxx");
+Anmial.onTest.overload("boolean", "android.os.Bundle").implementation = function(){
+    //
+};
+```
+
+### 强制类型转换
+
+Frida 提供了 `Java.cast()` 方法，用于强制类型转换。如下所示
+
+```js
+var clazz = Java.use("java.lang.Class");
+var cls = Java.cast(obj.getClass(),clazz); //先获取obje的Class，然后再强转成Class类型。
+```
