@@ -1,13 +1,14 @@
 # FridaHookAndroid
+
 Frida-Android 进阶
 
 frida 版本：12.11.18
 
 系统：Ubuntu 20.04 LTS
 
-博客地址：[Frida Hook Android App 进阶用法之 Java 运行时](https://blog.csdn.net/song_lee/article/details/111999565)
+博客地址：[Frida Hook Android App 进阶用法之 Java 运行时](https://blog.csdn.net/song_lee/article/details/111999565) **(没有此文档更新及时)**
 
-## 官方 API
+## 0x10 官方 API
 
 ### Java 运行时
 
@@ -56,11 +57,11 @@ Java.perform(function(){
 
 枚举当前已加载的类。`callbacks` 参数是一个对象，需要提供两个回调函数—— `onMatch(className)` 和 `onComplete`。每次找到一个类就会调用一次 `onMatch`，全部找完之后，调用 `onComplete`。
 
-## hook 案例
+## 0x20 hook 案例
 
-### 通用案例
+### 0x21 通用案例
 
-方法一：运行时 hook
+**方法一：运行时 hook**
 
 ```python
 import frida
@@ -86,7 +87,7 @@ script.load()
 sys.stdin.read()
 ```
 
-方法二：spawn 拉起进程
+**方法二：spawn 拉起进程**
 
 如果需要 hook app 执行 onCreate() 方法中的一些功能，就需要使用 spawn 模式
 
@@ -107,6 +108,10 @@ frida -U -l test.js -f com.example.testfrida
 
 #### 普通方法
 
+**方法一：Java.use**
+
+这种方式比较通用，但是在某些动态加载的类中，可能无法hook
+
 ```js
 Java.perform(function (){
     send("start hook...");
@@ -126,6 +131,24 @@ Java.perform(function (){
 [+] start hook...
 [+] hijack getAnimalInfo
 ```
+
+**方法二：Java.choose**
+
+这种方式适用于一些动态方法，静态方法不适用此方式
+
+```js
+Java.choose("com.xxx.class", {
+        onMatch: function(instance) {
+            // hook 类
+        },
+
+        onComplete: function() {
+
+        }
+    });
+```
+
+
 
 #### 构造函数
 
@@ -276,7 +299,7 @@ Java.perform(function (){
         this.age.value = 9999;
 ```
 
-### 进阶用法
+### 0x22 进阶用法
 
 #### 获取内存中加载的所有类
 
@@ -413,7 +436,44 @@ lys@lys-VirtualBox:~$ adb logcat -s AndroidRuntime
 12-19 17:50:22.314 31328 31328 E AndroidRuntime:        ... 3 more
 ```
 
-### 助理函数
+#### Frida Hook 插件类
+
+App 插件往往会改变系统默认的 classloader，这时候如果直接 hook 插件中的类，就会发现 frida 提示找不到该类。`Java.enumerateClassLoaders ` 用来枚举当前所有的 classloader，以 360 的 replugin 插件为例，相应的 hook 代码如下所示
+
+```js
+Java.perform(function(){
+    var HostApi;
+    
+    Java.enumerateClassLoaders({
+        "onMatch": function(loader) {
+            //console.log(loader);
+            if (loader.toString().startsWith("com.qihoo360.replugin.PluginDexClassLoader")) {
+                Java.classFactory.loader = loader; // 将当前class factory中的loader指定为我们需要的
+            }
+        },
+        "onComplete": function() {
+            console.log("success");
+         }
+    });
+
+    Java.choose("com.xxx.class", {
+        onMatch: function(instance) {
+            HostApi = instance;
+        },
+
+        onComplete: function() {
+
+        }
+    });
+    
+    HostApi.funcname.implementation = function (arg1, arg2, arg3) {
+        //console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()));
+        return this.funcname(arg1, arg2, arg3);
+    };    
+});
+```
+
+### 0x23 助理函数
 
 #### ArrayBuffer 转换
 
@@ -473,9 +533,123 @@ function bytes2hex(array) {
 }
 ```
 
-## 典型案例
+## 0x30 Frida 数据类型
 
-### hook BLE
+Frida hook 某个方法时，如果该方法没有重载，则相当简单，我们不需要声明参数类型，直接使用 `类.方法名.implentation = function(arg1, arg2){}`
+
+如果该方法重载，则需要添加参数类型，写法如下 `类.方法名.overload(类型1， 类型2) = function(arg1, arg2){}`
+
+### 0x31 基本数据类型
+
+| Frida中的基本类型全名 | Frida中的基本类型缩写(定义数组时使用) |
+| --------------------- | ------------------------------------- |
+| boolean               | Z                                     |
+| byte                  | B                                     |
+| char                  | C                                     |
+| double                | D                                     |
+| float                 | F                                     |
+| int                   | I                                     |
+| long                  | J                                     |
+| short                 | S                                     |
+
+Frida 基本数据类型与 Java 保持一致。
+
+#### 定义一个整型变量
+
+```js
+// int jStringVar = 1;
+var jInt = Java.use("java.lang.Integer");
+var jStringVar = jStringClass.$new(1);
+```
+
+#### 定义一个字符串变量
+
+```js
+// String jStringVar = "我是字符串"
+var jString = Java.use("java.lang.String");
+var jStringVar = jStringClass.$new("我是字符串");
+```
+
+#### 打印变量值
+
+```js
+console.log(jStringVar.value)
+```
+
+### 0x32 数组
+
+数组类型其实与 Smali 语法或者说是 Java 字节码保持一致，例如 
+
+- int 类型的数组，写法为：`[I`
+- String 类型的数组，写法为：`[java.lang.String;`  注意结尾的分号
+
+#### 定义一个空数组
+
+Java/C 代码
+
+```c
+int a[];
+```
+
+Frida Js 代码
+
+```js
+var emptyArray = Java.array("Ljava.lang.Object;",[]);
+//---简写如下
+var emptyArray = [];
+```
+
+#### 定义一个数组并初始化
+
+Java/C 代码
+
+```c
+int a[] = {1, 2};
+```
+
+Frida Js 代码
+
+```js
+var intClass = Java.use("java.lang.Integer");
+var num1 = intClass.$new(1);
+var num2 = intClass.$new(2);
+var intArray = Java.array("Ljava.lang.Object;",[num1,num2]);
+//---简写如下
+var num1 = intClass.$new(1);
+var num2 = intClass.$new(2);
+var intArray = [num1,num2];
+```
+
+### 0x33 引用数据类型
+
+如果是 hook 某个**重载**函数，其中的参数为引用数据类型，那么直接写入全称即可。例如我们想 hook  这个函数
+
+```java
+// Anmial 类
+public void onTest(boolean z, Bundle bundle);
+```
+
+直接使用如下 js
+
+```js
+var Anmial = Java.use("xxxx");
+Anmial.onTest.overload("boolean", "android.os.Bundle").implementation = function(){
+    //
+};
+```
+
+### 0x34 强制类型转换
+
+Frida 提供了 `Java.cast()` 方法，用于强制类型转换。如下所示
+
+```js
+var clazz = Java.use("java.lang.Class");
+var cls = Java.cast(obj.getClass(),clazz); //先获取obje的Class，然后再强转成Class类型。
+```
+
+## 0x40 实际案例
+
+### 0x51 hook BLE
 
 #### 分析
 
@@ -537,118 +711,4 @@ if (Java.available) {
 
     }); // end perform
 } 
-```
-
-## Frida 数据类型
-
-Frida hook 某个方法时，如果该方法没有重载，则相当简单，我们不需要声明参数类型，直接使用 `类.方法名.implentation = function(arg1, arg2){}`
-
-如果该方法重载，则需要添加参数类型，写法如下 `类.方法名.overload(类型1， 类型2) = function(arg1, arg2){}`
-
-### 基本数据类型
-
-| Frida中的基本类型全名 | Frida中的基本类型缩写(定义数组时使用) |
-| --------------------- | ------------------------------------- |
-| boolean               | Z                                     |
-| byte                  | B                                     |
-| char                  | C                                     |
-| double                | D                                     |
-| float                 | F                                     |
-| int                   | I                                     |
-| long                  | J                                     |
-| short                 | S                                     |
-
-Frida 基本数据类型与 Java 保持一致。
-
-#### 定义一个整型变量
-
-```js
-// int jStringVar = 1;
-var jInt = Java.use("java.lang.Integer");
-var jStringVar = jStringClass.$new(1);
-```
-
-#### 定义一个字符串变量
-
-```js
-// String jStringVar = "我是字符串"
-var jString = Java.use("java.lang.String");
-var jStringVar = jStringClass.$new("我是字符串");
-```
-
-#### 打印变量值
-
-```js
-console.log(jStringVar.value)
-```
-
-### 数组
-
-数组类型其实与 Smali 语法或者说是 Java 字节码保持一致，例如 
-
-- int 类型的数组，写法为：`[I`
-- String 类型的数组，写法为：`[java.lang.String;`  注意结尾的分号
-
-#### 定义一个空数组
-
-Java/C 代码
-
-```c
-int a[];
-```
-
-Frida Js 代码
-
-```js
-var emptyArray = Java.array("Ljava.lang.Object;",[]);
-//---简写如下
-var emptyArray = [];
-```
-
-#### 定义一个数组并初始化
-
-Java/C 代码
-
-```c
-int a[] = {1, 2};
-```
-
-Frida Js 代码
-
-```js
-var intClass = Java.use("java.lang.Integer");
-var num1 = intClass.$new(1);
-var num2 = intClass.$new(2);
-var intArray = Java.array("Ljava.lang.Object;",[num1,num2]);
-//---简写如下
-var num1 = intClass.$new(1);
-var num2 = intClass.$new(2);
-var intArray = [num1,num2];
-```
-
-### 引用数据类型
-
-如果是 hook 某个**重载**函数，其中的参数为引用数据类型，那么直接写入全称即可。例如我们想 hook  这个函数
-
-```java
-// Anmial 类
-public void onTest(boolean z, Bundle bundle);
-```
-
-直接使用如下 js
-
-```js
-var Anmial = Java.use("xxxx");
-Anmial.onTest.overload("boolean", "android.os.Bundle").implementation = function(){
-    //
-};
-```
-
-### 强制类型转换
-
-Frida 提供了 `Java.cast()` 方法，用于强制类型转换。如下所示
-
-```js
-var clazz = Java.use("java.lang.Class");
-var cls = Java.cast(obj.getClass(),clazz); //先获取obje的Class，然后再强转成Class类型。
 ```
