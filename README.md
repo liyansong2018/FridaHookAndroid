@@ -649,7 +649,7 @@ var cls = Java.cast(obj.getClass(),clazz); //先获取obje的Class，然后再�
 
 ## 0x40 实际案例
 
-### 0x51 hook BLE
+### 0x41 hook BLE
 
 #### 分析
 
