@@ -308,7 +308,7 @@ Java.perform(function(){
     send("enumerating classes...");
     Java.enumerateLoadedClasses({
         onMatch: function(className){
-            send("found class >> " + className);
+            send("found class >> " + className);		// 类名
         },
         onComplete: function(){
             send("class enumration complete");
@@ -338,9 +338,9 @@ Java.perform(function(){
     send("obtain methods...");
 
     var Animal = Java.use("com.example.testfrida.Animal");
-    var methods = Animal.class.getDeclaredMethods();
+    var methods = Animal.class.getDeclaredMethods();	// 方法名
     for(var i = 0; i < methods.length; i++){
-        console.log(methods[i]);;
+        console.log(methods[i].getName());
     }
 });
 ```
@@ -455,7 +455,8 @@ Java.perform(function(){
             console.log("success");
          }
     });
-
+	
+    // 方法一
     Java.choose("com.xxx.class", {
         onMatch: function(instance) {
             HostApi = instance;
@@ -465,6 +466,9 @@ Java.perform(function(){
 
         }
     });
+    
+    // 方法二
+    HostApi = Java.use("com.xxx.class");
     
     HostApi.funcname.implementation = function (arg1, arg2, arg3) {
         //console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()));
