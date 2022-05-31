@@ -636,6 +636,12 @@ var jString = Java.use("java.lang.String");
 var jStringVar = jStringClass.$new("我是字符串");
 ```
 
+#### 定义一个字节数组
+
+```js
+var buffer = Java.array('byte', [ 13, 37, 42 ]);
+```
+
 #### 打印变量值
 
 ```js
