@@ -57,11 +57,9 @@ Java.perform(function(){
 
 枚举当前已加载的类。`callbacks` 参数是一个对象，需要提供两个回调函数—— `onMatch(className)` 和 `onComplete`。每次找到一个类就会调用一次 `onMatch`，全部找完之后，调用 `onComplete`。
 
-## 0x20 hook 案例
+### 如何拉起 Frida 脚本
 
-### 0x21 通用案例
-
-**方法一：运行时 hook**
+#### 方法一：运行时 hook
 
 ```python
 import frida
@@ -87,7 +85,7 @@ script.load()
 sys.stdin.read()
 ```
 
-**方法二：spawn 拉起进程**
+#### 方法二：spawn 拉起进程
 
 如果需要 hook app 执行 onCreate() 方法中的一些功能，就需要使用 spawn 模式
 
@@ -105,6 +103,12 @@ frida -U -l test.js -f com.example.testfrida
 
 - 使用方法一，运行时 hook，需要在 app 刚启动时，就运行 python 程序；
 - 使用方法二，用 spawn 拉起 app
+
+## 0x20 hook 案例
+
+> **最新版的 Jadx 已经可以根据反编译的函数自动生成 Frida 脚本，大大简化了我们逆向的工作。**
+
+### 0x21 通用案例
 
 #### 普通方法
 
@@ -601,9 +605,9 @@ function bytes2hex(array) {
 
 ## 0x30 Frida 数据类型
 
-Frida hook 某个方法时，如果该方法没有重载，则相当简单，我们不需要声明参数类型，直接使用 `类.方法名.implentation = function(arg1, arg2){}`
+Frida hook 某个方法时，如果该方法没有重载，则相当简单，我们不需要声明参数类型，直接使用 `类.方法名.implentation = function(arg1, arg2){}`。如果该方法重载，则需要添加参数类型，写法如下 `类.方法名.overload(类型1， 类型2) = function(arg1, arg2){}`
 
-如果该方法重载，则需要添加参数类型，写法如下 `类.方法名.overload(类型1， 类型2) = function(arg1, arg2){}`
+> 如果你无法确定想要 Hook 的参数类型，可以在 Frida 脚本里，只写函数，不写参数，这样运行该脚本时，会自动打印错误信息，该信息包含你 Hook 的方法的所有参数类型。
 
 ### 0x31 基本数据类型
 
